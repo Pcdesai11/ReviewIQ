@@ -14,6 +14,8 @@ class Settings(BaseSettings):
     llm_model: str = "gpt-4o-mini"
     llm_api_key: str = ""
     github_webhook_secret: str = ""
+    github_token: str = ""
+    github_api_base: str = "https://api.github.com"
     risk_threshold: int = 70
 
     @property
