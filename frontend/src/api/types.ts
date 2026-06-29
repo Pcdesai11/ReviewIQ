@@ -33,3 +33,25 @@ export interface PortfolioSummary {
   flakyTestsWatched: number
   triagedToday: number
 }
+
+export interface TrendPoint {
+  date: string
+  averageRisk: number
+  flakyFlags: number
+  triageCount: number
+}
+
+export interface MetricsTrend {
+  points: TrendPoint[]
+}
+
+export interface AuditLogEntry {
+  id: string
+  analysisType: string
+  subjectId: string
+  modelProvider: string
+  modelName: string
+  output: string
+  actionTaken: string
+  createdAt: string
+}

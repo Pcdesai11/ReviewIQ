@@ -1,17 +1,21 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.db.session import CITriage, FlakyTestFlag, PullRequestRisk, get_db
+from app.db.session import AuditLog, CITriage, FlakyTestFlag, PullRequestRisk, get_db
 from app.schemas.results import (
+    AuditLogListOut,
+    AuditLogOut,
     CITriageListOut,
     CITriageOut,
     FlakyTestListOut,
     FlakyTestOut,
     MetricsSummaryOut,
+    MetricsTrendOut,
     PullRequestRiskOut,
+    TrendPoint,
 )
 
 router = APIRouter(prefix="/v1", tags=["results"])
@@ -90,4 +94,60 @@ def get_metrics_summary(db: Session = Depends(get_db)):
         high_risk_open_prs=high_risk,
         flaky_tests_watched=flaky_count,
         triaged_today=triaged_today,
+    )
+
+
+@router.get("/metrics/trends", response_model=MetricsTrendOut)
+def get_metrics_trends(db: Session = Depends(get_db)):
+    now = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    points: list[TrendPoint] = []
+
+    for day_offset in range(29, -1, -1):
+        day_start = now - timedelta(days=day_offset)
+        day_end = day_start + timedelta(days=1)
+        label = day_start.strftime("%Y-%m-%d")
+
+        prs = (
+            db.query(PullRequestRisk)
+            .filter(PullRequestRisk.created_at >= day_start, PullRequestRisk.created_at < day_end)
+            .all()
+        )
+        avg_risk = round(sum(p.risk_score for p in prs) / len(prs), 1) if prs else 0.0
+
+        flaky = (
+            db.query(FlakyTestFlag)
+            .filter(FlakyTestFlag.created_at >= day_start, FlakyTestFlag.created_at < day_end)
+            .count()
+        )
+        triage = (
+            db.query(CITriage)
+            .filter(CITriage.reported_at >= day_start, CITriage.reported_at < day_end)
+            .count()
+        )
+
+        points.append(
+            TrendPoint(date=label, averageRisk=avg_risk, flakyFlags=flaky, triageCount=triage)
+        )
+
+    return MetricsTrendOut(points=points)
+
+
+@router.get("/audit", response_model=AuditLogListOut)
+def list_audit_logs(limit: int = 50, db: Session = Depends(get_db)):
+    limit = min(max(limit, 1), 200)
+    rows = db.query(AuditLog).order_by(AuditLog.created_at.desc()).limit(limit).all()
+    return AuditLogListOut(
+        items=[
+            AuditLogOut(
+                id=r.id,
+                analysisType=r.analysis_type,
+                subjectId=r.subject_id,
+                modelProvider=r.model_provider,
+                modelName=r.model_name,
+                output=r.output[:500],
+                actionTaken=r.action_taken,
+                createdAt=r.created_at,
+            )
+            for r in rows
+        ]
     )

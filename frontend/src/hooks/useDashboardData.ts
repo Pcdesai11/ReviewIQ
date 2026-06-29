@@ -9,6 +9,10 @@ export function useDashboardData() {
         queryFn: api.getMetricsSummary,
       },
       {
+        queryKey: ['metrics', 'trends'],
+        queryFn: api.getMetricsTrends,
+      },
+      {
         queryKey: ['pulls'],
         queryFn: api.getPulls,
       },
@@ -20,10 +24,14 @@ export function useDashboardData() {
         queryKey: ['ci-runs', 'triage'],
         queryFn: api.getTriageQueue,
       },
+      {
+        queryKey: ['audit'],
+        queryFn: () => api.getAuditLogs(15),
+      },
     ],
   })
 
-  const [metrics, pulls, flakyTests, triageItems] = results
+  const [metrics, trends, pulls, flakyTests, triageItems, auditLogs] = results
 
   const isLoading = results.some((r) => r.isLoading)
   const isError = results.some((r) => r.isError)
@@ -31,9 +39,11 @@ export function useDashboardData() {
 
   return {
     metrics: metrics.data,
+    trends: trends.data?.points ?? [],
     pulls: pulls.data ?? [],
     flakyTests: flakyTests.data ?? [],
     triageItems: triageItems.data ?? [],
+    auditLogs: auditLogs.data ?? [],
     isLoading,
     isError,
     error,

@@ -3,6 +3,8 @@ import MarginRail from '../components/MarginRail'
 import ReviewSection, { type ReviewRow, type Tone } from '../components/ReviewSection'
 import FadeIn from '../components/FadeIn'
 import DataStatus from '../components/DataStatus'
+import TrendCharts from '../components/TrendCharts'
+import AuditTrail from '../components/AuditTrail'
 import { useDashboardData } from '../hooks/useDashboardData'
 import type { TriageClass } from '../api/types'
 
@@ -32,7 +34,7 @@ function formatMinutesAgo(minutes: number) {
 }
 
 export default function DashboardPage() {
-  const { metrics, pulls, flakyTests, triageItems, isLoading, isError, error, refetch } =
+  const { metrics, trends, pulls, flakyTests, triageItems, auditLogs, isLoading, isError, error, refetch } =
     useDashboardData()
 
   const pullRequestRows: ReviewRow[] = pulls.map((pr) => ({
@@ -119,6 +121,16 @@ export default function DashboardPage() {
                   emptyState="No CI failures to triage."
                 />
               </FadeIn>
+
+              {trends.length > 0 && (
+                <FadeIn delay={400}>
+                  <TrendCharts points={trends} />
+                </FadeIn>
+              )}
+
+              <FadeIn delay={480}>
+                <AuditTrail entries={auditLogs} />
+              </FadeIn>
             </div>
           </div>
         </main>
@@ -126,8 +138,8 @@ export default function DashboardPage() {
 
       <footer className="border-t border-hairline bg-ivory/75 backdrop-blur-sm">
         <div className="mx-auto max-w-6xl px-6 py-6 font-sans text-xs text-ink-muted sm:px-10">
-          ReviewIQ dashboard — live data from the Results API. No GitHub repositories connected
-          yet.
+          ReviewIQ dashboard — live data from the Results API. Connect GitHub webhooks to
+          <code className="mx-1 font-mono text-xs"> POST /webhooks/github</code> and run the worker.
         </div>
       </footer>
     </div>
