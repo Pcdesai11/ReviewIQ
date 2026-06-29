@@ -1,0 +1,170 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply bg-ivory text-ink;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply font-sans antialiased;
+    font-feature-settings: 'tnum' 1;
+  }
+
+  /* Tabular numerals everywhere a number appears, so columns of figures align like a real ledger */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Visible keyboard focus, not the browser default, but never silently removed */
+  :focus-visible {
+    outline: 2px solid theme('colors.brass');
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  ::selection {
+    background-color: theme('colors.brass');
+    color: theme('colors.cream');
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Subtle ink-settling fade used once, on load, for the margin rail figures */
+@keyframes ink-settle {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-ink-settle {
+  animation: ink-settle 420ms ease-out both;
+}
+
+/* Scroll-triggered and hero entrance animations */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-down {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up,
+.animate-fade-down,
+.animate-fade-in {
+  opacity: 0;
+}
+
+.animate-fade-up.is-visible {
+  animation: fade-up 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-fade-down.is-visible {
+  animation: fade-down 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-fade-in.is-visible {
+  animation: fade-in 600ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-page-enter {
+  animation: page-enter 450ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ── Subtle sakura petals ── */
+
+.sakura-bg {
+  background-color: theme('colors.ivory');
+}
+
+.sakura-petal {
+  top: -6%;
+  animation: sakura-fall var(--petal-duration) linear infinite;
+  animation-delay: var(--petal-delay);
+  will-change: transform, opacity;
+}
+
+@keyframes sakura-fall {
+  0% {
+    transform: translate3d(0, -8vh, 0) rotate(0deg) scale(0.9);
+    opacity: 0;
+  }
+  8% {
+    opacity: var(--petal-opacity);
+  }
+  25% {
+    transform: translate3d(calc(var(--petal-drift) * 0.25), 22vh, 0) rotate(95deg) scale(1);
+  }
+  50% {
+    transform: translate3d(calc(var(--petal-drift) * 0.55), 48vh, 0) rotate(195deg) scale(0.95);
+  }
+  75% {
+    transform: translate3d(calc(var(--petal-drift) * 0.85), 74vh, 0) rotate(285deg) scale(1);
+  }
+  92% {
+    opacity: var(--petal-opacity);
+  }
+  100% {
+    transform: translate3d(var(--petal-drift), 108vh, 0) rotate(380deg) scale(0.85);
+    opacity: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .sakura-petal:nth-child(n + 9) {
+    display: none;
+  }
+}
+
