@@ -7,6 +7,7 @@ from typing import Any
 from fastapi import APIRouter, Header, HTTPException, Request
 
 from app.config import settings
+from app.metrics.prometheus import EVENTS_ENQUEUED, WEBHOOKS_RECEIVED
 from app.queue import EventType, QueueEvent, enqueue
 
 logger = logging.getLogger(__name__)
@@ -15,6 +16,7 @@ router = APIRouter(prefix="/webhooks", tags=["webhooks"])
 
 def _enqueue(event_type: EventType, payload: dict[str, Any]) -> None:
     enqueue(QueueEvent(type=event_type, payload=payload))
+    EVENTS_ENQUEUED.labels(event_type=event_type.value).inc()
 
 
 @router.post("/github")
@@ -38,6 +40,8 @@ async def github_webhook(
 
     payload: dict[str, Any] = json.loads(body) if body else {}
     event_name = x_github_event or "unknown"
+    WEBHOOKS_RECEIVED.labels(event=event_name).inc()
+
     action = payload.get("action")
     queued: list[str] = []
 

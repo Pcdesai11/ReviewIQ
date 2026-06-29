@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     github_token: str = ""
     github_api_base: str = "https://api.github.com"
     risk_threshold: int = 70
+    worker_poll_interval: float = 1.0
 
     @property
     def cors_origin_list(self) -> list[str]:
