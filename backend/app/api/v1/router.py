@@ -126,7 +126,12 @@ def get_metrics_trends(db: Session = Depends(get_db)):
         )
 
         points.append(
-            TrendPoint(date=label, averageRisk=avg_risk, flakyFlags=flaky, triageCount=triage)
+            TrendPoint(
+                date=label,
+                average_risk=avg_risk,
+                flaky_flags=flaky,
+                triage_count=triage,
+            )
         )
 
     return MetricsTrendOut(points=points)
@@ -140,13 +145,13 @@ def list_audit_logs(limit: int = 50, db: Session = Depends(get_db)):
         items=[
             AuditLogOut(
                 id=r.id,
-                analysisType=r.analysis_type,
-                subjectId=r.subject_id,
-                modelProvider=r.model_provider,
-                modelName=r.model_name,
+                analysis_type=r.analysis_type,
+                subject_id=r.subject_id,
+                model_provider=r.model_provider,
+                model_name=r.model_name,
                 output=r.output[:500],
-                actionTaken=r.action_taken,
-                createdAt=r.created_at,
+                action_taken=r.action_taken,
+                created_at=r.created_at,
             )
             for r in rows
         ]

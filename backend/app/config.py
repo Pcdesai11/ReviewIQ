@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     llm_provider: str = "openai"
     llm_model: str = "gpt-4o-mini"
     llm_api_key: str = ""
+    llm_api_base: str = ""
+    llm_api_version: str = "2024-02-15-preview"
     github_webhook_secret: str = ""
     github_token: str = ""
     github_api_base: str = "https://api.github.com"
