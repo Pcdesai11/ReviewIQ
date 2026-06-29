@@ -7,6 +7,4 @@ python-dotenv>=1.0.1
 redis>=5.0.0
 httpx>=0.27.0
 prometheus-client>=0.21.0
-
-# Install when using PostgreSQL (docker compose):
-# pip install psycopg2-binary
+psycopg2-binary>=2.9.10

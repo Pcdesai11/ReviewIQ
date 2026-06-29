@@ -1,3 +1,4 @@
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -7,6 +8,14 @@ class Settings(BaseSettings):
     app_name: str = "ReviewIQ Results API"
     debug: bool = True
     database_url: str = "sqlite:///./reviewiq.db"
+
+    @field_validator("database_url")
+    @classmethod
+    def normalize_database_url(cls, value: str) -> str:
+        # Render Postgres uses postgres://; SQLAlchemy expects postgresql://
+        if value.startswith("postgres://"):
+            return value.replace("postgres://", "postgresql://", 1)
+        return value
     redis_url: str = "redis://localhost:6379/0"
     cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
 
