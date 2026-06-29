@@ -1,13 +1,20 @@
 import hashlib
 import hmac
 import json
+import logging
 from typing import Any
 
 from fastapi import APIRouter, Header, HTTPException, Request
 
 from app.config import settings
+from app.queue import EventType, QueueEvent, enqueue
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/webhooks", tags=["webhooks"])
+
+
+def _enqueue(event_type: EventType, payload: dict[str, Any]) -> None:
+    enqueue(QueueEvent(type=event_type, payload=payload))
 
 
 @router.post("/github")
@@ -30,11 +37,23 @@ async def github_webhook(
             raise HTTPException(status_code=401, detail="Invalid signature")
 
     payload: dict[str, Any] = json.loads(body) if body else {}
+    event_name = x_github_event or "unknown"
+    action = payload.get("action")
+    queued: list[str] = []
 
-    # Ingest only — analysis workers will consume from the queue later.
+    if event_name == "pull_request" and action in ("opened", "synchronize", "reopened"):
+        event_type = EventType.PR_OPENED if action == "opened" else EventType.PR_SYNC
+        _enqueue(event_type, payload)
+        queued.append(event_type.value)
+
+    elif event_name == "workflow_run" and action == "completed":
+        _enqueue(EventType.WORKFLOW_RUN, payload)
+        queued.append(EventType.WORKFLOW_RUN.value)
+
     return {
         "accepted": True,
-        "event": x_github_event,
-        "action": payload.get("action"),
-        "message": "Webhook received; queued for processing (worker not yet implemented)",
+        "event": event_name,
+        "action": action,
+        "queued": queued,
+        "message": "Events enqueued for worker processing" if queued else "Event acknowledged (no action)",
     }
